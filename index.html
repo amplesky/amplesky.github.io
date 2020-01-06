@@ -24,16 +24,16 @@
     }
     .btn{
         background-color: orange;
-        height: 55px;
-        width: 200px;
+        height: 45px;
+        width: 120px;
         border-radius: 5px;
         /* display:flex; */
         /* text-align: center; */
         
     }
     .Image{
-        width: 30px;
-        height: 30px;
+        width: 20px;
+        height: 20px;
         display: inline-block;
         
     }
@@ -41,6 +41,7 @@
         /* display:inline-block; */
         margin-left: 5px;
         color: white;
+        font-size: x-small;
     }
     .Logo{
         width: 100px;
@@ -50,6 +51,7 @@
     .version{
         margin-top: 10px;
         color: white;
+        font-size: 10px;
     }
     .body-background{ 
   background-image: url("./icon/dark_linen.png");
@@ -62,13 +64,56 @@
     <div class="box-wrap">
             <div class="Title">指挥调度客户端</div> 
             <img class="Logo" src="./icon/Appicon.png"/>
-            <div class="version">版本:1.0.8</div> 
-            <p>
-                <button class="btn"onclick="window.location.href='itms-services:///?action=download-manifest&url=https://amplesky.github.io/appinfo.plist'">
+        <div style="margin-top: 25px;">
+            <div style="display: inline-block;">
+                <div class="version">版本:(v1.0.8)</div> 
+                <button class="btn"onclick="Downloadios()">
                     <img src="./icon/Dowload.png" class="Image"/>
-                    <div class="Text">指挥调度客户端下载</div>
-                  </button>
-            </p>
+                    <div class="Text">iOS端下载</div>
+                </button>
+            </div>
+            
+            <div style="display: inline-block;margin-left: 30px;">
+                <div class="version">版本:1.0.9</div> 
+                <button class="btn"onclick="DownloadAndroid()">
+                    <img src="./icon/Dowload.png" class="Image"/>
+                    <div class="Text">Android端下载</div>
+                </button>
+            </div>
+        </div>            
     </div>
+
+    <script>
+    
+     function Downloadios(){
+        if(isIos()){
+            window.location.href='itms-services:///?action=download-manifest&url=https://amplesky.github.io/appinfo.plist'
+        }else{
+            alert("Android设备,请下载Android安装包")
+        }
+
+     }   
+
+    function DownloadAndroid(){
+        if(isIos()){
+            alert("iOS设备,请下载iOS安装包")
+        }else{
+            window.location.href='itms-services:///?action=download-manifest&url=https://amplesky.gitee.io/page/app/cc-1.0.9-20200103.apk'
+        }     
+    } 
+
+
+    function isIos() {
+    var u = navigator.userAgent;
+    if (u.indexOf("iOS") > -1) {
+        return true;
+    }   
+
+    return false;
+}
+    
+    </script>
+
+
 </body>
 </html>

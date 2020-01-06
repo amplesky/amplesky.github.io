@@ -102,16 +102,14 @@
         }     
     } 
 
-
     function isIos() {
     var u = navigator.userAgent;
-    if (u.indexOf("iOS") > -1) {
+    let isIOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+    if (isIOS) {
         return true;
     }   
-
     return false;
-}
-    
+} 
     </script>
 
 

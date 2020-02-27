@@ -1,0 +1,522 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="src/css/style.css">
+    <link rel="stylesheet" href="src/css/font-awesome.min.css">
+    <title style="text-align: center;margin-left: 200px;" id="TitleID">指挥调度客户端</title>
+
+  </head>
+  
+  <body class="body-background">
+    <!-- 设置页面 -->
+      <div class="SetVC"style="overflow: auto;  margin-top:0px; width: 100%;height:100%;text-align: center;" onclick="dissKeyBoard()">
+          <!-- <div class="backControl" style="width: 100%; height: 44px;background: white;" > -->
+            <div style="text-align: center;">
+              <!-- <div style="display: inline-block;" id="backID">
+                <img src="./sounds/Back.png" style="margin-top: 2px; margin-left: 15px; width: 40px; height: 40px; padding: 10px; display: inline-block;" alt="" onclick="backClick()">
+                <div style="font-size: 14px; display: inline-block;position: absolute; left:45px;margin-top: 11px;"  onclick="backClick()">返回</div>
+              </div>
+              -->
+              <div id="SetDiv" style="display: inline-block; font-size: 18px; display: inline-block; color: white; margin-top: 10px;">系统设置</div>
+            </div>
+            
+          <!-- </div> -->
+          <div class="col-md-4" style="display: block; " >
+          <div style="width: 100%;">
+              <p class="SetInput">会议服务器:</p>
+              <input type="text" class="IPIntext" id="MCu" placeholder="会议服务器" value="127.0.0.1">
+              <div class="sepLine"></div> 
+              <p class="SetInput">网关:</p>
+              <input type="text" class="IPIntext" id="GateWay-ip" placeholder="网关" value="ucp.amplesky.com">
+              <div class="sepLine"></div> 
+          </div>
+          <!-- Stun -->
+          <div style="width: 350px;height: 50px;text-align: left;">
+            <div style=" margin-left: 20px;display: inline-block;text-align: left;color: white; margin-top: 20px;font-size: 14px;">ICE服务器</div>
+            <div style="display: inline-block;margin-left: 10px; cursor: pointer;" onclick="SelectTurn(0)" id="TURNID">
+              <img id="turn" src="./sounds/NoSeleted.png" class="roundDiv" alt="">
+              <div class="roundText">TURN</div>
+            </div>
+            <div style="display: inline-block;margin-left: 10px; cursor: pointer;" onclick="SelectTurn(2)" id="STUNID">
+              <img id="stun" src="./sounds/NoSeleted.png" class="roundDiv" alt="">
+              <div class="roundText">STUN</div>
+            </div>
+          </div>
+          <div>
+            <input type="text" class="IPIntext" id="iceServer" placeholder="servers" value="106.120.208.29:3478">
+            <div class="sepLine"></div> 
+            <div id="Protol" style="width: 100%;">
+              <div style="width: 100%; margin-top: 10px;">
+                <p class="SetInput">TURN用户名:</p>
+                <input type="text" class="IPIntext"id="ICeName" placeholder="用户名" value="amplesky">
+                <div class="sepLine"></div> 
+                <p class="SetInput" style="margin-top: 10px;">TURN密码:</p>
+                <input type="password" class="IPIntext"  id="ICePass" placeholder="密码" value="amplesky123">
+                <div class="sepLine"></div> 
+            </div>
+              <div style="width: 350px;height: 50px;display: block; text-align: left;" >       
+                <div class="SetInput" style="margin-top: 20px;display: inline-block;">TURN传输方式:</div>
+                <div style="display: inline-block;margin-left: 0px; margin-top: 10px; cursor: pointer;" onclick="SelectProtal(0)" id="UDPID">
+                  <img id="UDP" src="./sounds/NoSeleted.png" class="roundDiv" alt="">
+                  <div class="roundText">UDP</div>
+                </div>
+                <div style="display: inline-block;margin-left: 0px; cursor: pointer;" onclick="SelectProtal(2)" id="TCPID">
+                  <img id="TCP" src="./sounds/NoSeleted.png" class="roundDiv" alt="">
+                  <div class="roundText">TCP</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="width: 100%; height: 40px; margin-top: 0px;">
+            <div style="float:left; color: white; margin-top: 10px; margin-right: 10px; margin-left: 20px;font-size: 14px;">自动接听</div>
+             <div style="float:left;position: absolute;right: 10px; margin-top: 5px;">
+                 <div class="testswitch">
+                     <input class="testswitch-checkbox" id="onoffswitch" type="checkbox" >
+                     <label class="testswitch-label" for="onoffswitch">
+                       <span class="testswitch-inner" data-on="ON" data-off="OFF"></span>
+                       <span class="testswitch-switch"></span>
+                     </label>
+                   </div> 
+             </div> 
+         </div>  
+         <!-- <div class="sepLine"></div>   -->
+       
+         <div style="width: 100%; height: 40px; margin-top: 20px;">
+           <div style="float:left; color: white; margin-top: 10px; margin-right: 10px; margin-left: 20px; font-size: 14px;">默认全屏</div>
+            <div style="float:left;position: absolute;right: 10px; margin-top: 5px;">
+                <div class="testswitch">
+                    <input class="testswitch-checkbox" id="Screenswitch" type="checkbox" >
+                    <label class="testswitch-label" for="Screenswitch">
+                      <span class="testswitch-inner" data-on="ON" data-off="OFF"></span>
+                      <span class="testswitch-switch"></span>
+                    </label>
+                  </div> 
+            </div> 
+        </div>  
+        <!-- <div class="sepLine"></div>  -->
+        <div style="width: 100%; height: 40px; margin-top: 20px;">
+         <div style="float:left; color: white; margin-top: 10px; margin-right: 10px; margin-left: 20px; font-size: 14px;">软键盘</div>
+          <div style="float:left;position: absolute;right: 10px; margin-top: 5px;">
+              <div class="testswitch">
+                  <input class="testswitch-checkbox" id="KeyBoardswitch" type="checkbox" >
+                  <label class="testswitch-label" for="KeyBoardswitch">
+                    <span class="testswitch-inner" data-on="ON" data-off="OFF"></span>
+                    <span class="testswitch-switch"></span>
+                  </label>
+                </div> 
+          </div> 
+      </div>  
+      <!-- <div class="sepLine"></div>  -->
+        <!-- 标准 -->
+        <div style="width: 350px;height: 50px;text-align: left;">
+          <div style="display: inline-block;color: white;margin-left: 20px; margin-top: 20px; font-size: 14px;">视图</div>
+          <div style="display: inline-block;margin-left: 20px;cursor: pointer;" onclick="SelectCamer(0)">
+            <img id="Camer0" src="./sounds/NoSeleted.png" class="roundDiv" alt="">
+            <div class="roundText">标准</div>
+         
+          </div>
+          <div style="display: inline-block;margin-left: 20px; cursor: pointer;" onclick="SelectCamer(2)">
+            <img id="Camer2" src="./sounds/NoSeleted.png" class="roundDiv" alt="">
+            <div class="roundText">放大</div>
+          </div>
+        </div>
+         <!-- <a id="setting" style="color: orange; font-s ize: 12px;" onclick="MoreSetting()" href="javascript: void(0);">更多设置</a> -->
+          </div> 
+          <!-- 保存 -->
+          <button class="setSave" id="SetSave" type="button" onclick="setSaveClick()">保存</button>
+           <button class="setSave" id="SetSave" type="button" onclick="backClick()">取消</button>
+           
+        </div> 
+        
+
+    <!-- 登录页面 -->
+    <div class="index" style="margin-top:0px; width: 100%;height: 100%;" onclick="dissKeyBoard()">
+      <div style="text-align: end;">
+        <img style="cursor: pointer; width: 25px; height: 25px; margin-top: 30px; margin-right: 30px;" src="./sounds//Setting.png" alt="image" onclick="acceptType()"/>
+      </div>
+      
+      <div style="margin-top: 10%;">
+          <div class="HeaderImage">
+            <img style="width: 70px;height: 70px;" src="./sounds/Appicon.png">
+            <div style="color:white;text-align: center;margin-top:10px;" id="LoginTitle">指挥调度客户端</div>
+          </div>
+          <div class="col-md-4">
+            <form>
+              <input type="text" class="form-control" id="Account" aria-describedby="serverAddressHelp" placeholder="账号">
+              <input type="password" class="form-control" id="passward" placeholder="密码">
+              <div id='set-input' style="display: none;">
+                  <input type="text" class="form-control" id="MCu" placeholder="会议服务器">
+                  <input type="text" class="form-control" id="GateWay-ip" placeholder="网关">
+              </div>
+              <button id="login-btn" class="btn btn-success w-100" type="button" style="border-color: orange; background: orange;">登录</button>
+              <div style="text-align: right; margin: 5px;">
+                <!-- <a id="setting" style="color: orange; font-size: 12px;" onclick="loginSetting()" href="javascript: void(0);">高级设置</a> -->
+              </div>
+              <div style="color:white; text-align: center; margin: 10px auto 0 auto;">©天地阳光(v1.1.3)</div>
+            </form>
+        </div>  
+      </div>
+    </div>
+
+    <!-- 呼叫页面 -->
+    <div class="CallVC" style=" height: 100%;"onclick="dissKeyBoard()">
+        <div  style=" display: block;">
+            <p id="LoginState" style="border-width: 2px; border-color: white; margin-left: 10px; background:green;width: 10px;height: 10px; margin-top: 30px; border-radius: 5px;"></p>
+            <div id="OwnUser" style="margin-left: 30px; width: 300px;height: 20px; color: white;position: absolute; top: 22px;">用户名:</div>
+            <div style="text-align: end; position: absolute; top: 30px; right: 30px;">
+              <img style="width: 25px; height: 25px; top: 0px; cursor: pointer;" src="./sounds//Setting.png" alt="image" onclick="CallacceptType()"/>
+            </div>
+        </div>
+        
+        <div class="col-md-4" style="margin: 60px auto;width: 350px; margin-top: 15%;">
+          <div style="color: gray; margin-left: 5px; font-size: 15px;">输入被叫号码</div>
+          <input value="" style="color: gray; padding: 5px; font-size: 15px;;" type="text" id="call-to" class="form-control"  placeholder="被叫号码">
+          <div style="margin:15px auto 0 auto; text-align: center;">
+              <div>
+                <img id="call-audio-btn" style="cursor: pointer;" src="./sounds/TelePhone.png" class="CAllIMage">
+                <img id="call-audio-video-btn" style="cursor: pointer;" src="./sounds/Video.png" class="CAllIMage">
+                <img id="Meeting-audio-video-btn" style="cursor: pointer;" src="./sounds/Meeting.png" class="CAllIMage">
+              </div>
+            </div>
+        </div>
+      <p id="ChooseAlert"></p>
+      <div style=" position: absolute;bottom: 30px;left: 50%; margin-left: -40px;">
+        <div style="margin:0 auto;">
+          <span style="width: 200px; color:white;font-size: 13px;" class="adressText" id = "serverAddress">服务器地址</span>
+        </div>
+        <div style="margin:0 auto; margin-top: 10px;">
+          <span style="text-align: start; color:white;font-size: 13px;" id="netAdress">网关地址</span>
+        </div>
+      </div>
+    </div>
+
+    <!--被叫页面-->
+    <div class="CommingCall" style="width: 100%; height: 100%; text-align: center; position: absolute; top: 0px;">
+        <div >
+          <div style=" text-align: center;">
+              <div  id="commingType" style="color: white; margin: 20px;">来电</div>
+              <span id="CommingName" style="color: white;margin-top: 10px;">来电名称</span>     
+          </div>
+        </div>
+        <div style="margin: 0 auto; text-align: center; ">
+          <div style="bottom: 30px;position: absolute; left: 50%; margin-left: -102px; text-align: center;display: inline-block;">
+            <div class="div_inLine">
+              <img id="comminghungUp" src="./sounds/HangUp.png" style="width: 50px;height: 50px;margin-right: 100px;cursor: pointer;"/> 
+              <p class="HungupActionText" style=" color: white; font-size: 12px;margin-top: 10px;">挂断</p>
+            </div>
+             <div class="div_inLine">
+              <img id="commingAnwer" src="./sounds/answer.png" style="width: 50px;height: 50px;cursor: pointer;"/> 
+              <p class="acceptText" style=" color: white; font-size: 12px; margin-top: 10px;">接听</p>       
+
+             </div>
+                     
+          </div>
+        </div>
+    </div>
+
+
+
+    <!-- 语音通话页面 -->
+    <div class="AudioCallVC" style="width: 100%;height: 100%;">
+      <div class="main">
+        <h6 style="color: white;">音频通话</h6>
+        <p style="color: white;" class="p1" id="callName"></p>
+        <span style="color: white;" id="sid">00:00:00</span>
+          <audio autoplay="" id="remote-stream-audio"></audio>
+      </div>
+      <div class="row" style=" width: 100%; margin: 0 auto;position: absolute;bottom: 20px;">
+        <div style="margin:0 auto;">
+          <div class="div_inLine">
+              <img id="audioCallImage" style="height: 50px; margin: 0 20px; cursor: pointer;" src="./sounds/Audio.png" alt="打开/关闭声音">
+              <p class="actionText" >麦克风</p>
+          </div>
+            
+            <div class="div_inLine">
+                <img id="audioSpeakImage" src="./sounds/Speaker.png" alt="挂断" style="height: 50px; margin: 0 20px; cursor: pointer; ">
+                <p class="actionText" >扬声器</p>
+            </div>
+
+            <div class="div_inLine"> 
+              <img id="audioHungImage" src="./sounds/HangUp.png" alt="挂断" style="height: 50px; margin: 0 20px; cursor: pointer;">
+              <p class="actionText" >挂断</p>
+          </div>
+        </div>
+      </div>  
+    </div>
+  
+    <!-- //统计信息 -->
+    <div class="MessageVC">
+      <img src="./sounds/Cancle.png" style="position: absolute; width: 25px;height: 25px;right: 10px; margin-top: 10px;" alt="" onclick="MessageCancle()">
+      <div class="MesageClassVideo" onclick="ClickMessageInfo(0)" id="MessageVideo">视频</div>
+      <div class="MesageClass" onclick="ClickMessageInfo(1)" id="MessageAudio">音频</div>
+      
+        <div style="width: 100%;height: 40px;display: block; text-align: center; " >       
+          <div style="display: inline-block;margin-left: -15px; margin-top: 5px;" id="MessageVideoReceive"  onclick="ClickVideoMessage(0)">
+            <img id="ReceiveImage" src="./sounds/NoSeleted.png" class="roundDiv" alt="">
+            <div class="MessgaeroundText">接收</div>
+          </div>
+          <div style="display: inline-block;margin-left: 0px;" id="MessageVideoSend" onclick="ClickVideoMessage(1)">
+            <img id="SendImage" src="./sounds/NoSeleted.png" class="roundDiv" alt="">
+            <div class="MessgaeroundText">发送</div>
+          </div>
+      </div>
+      <div id="messageTextVideo" class="VideoMessageClass"> </div>  
+      <div id="messageTextAudio" class="VideoMessageClass" style="display: none;"> </div>  
+    </div>
+
+
+    <!-- 视屏通话页面 -->
+  <div class="VideoCallVC" style="height: 100%; width: 100%; text-align: center; margin:0 auto;">
+    <!-- <div style="color: white;margin-top: 10px;" id="Resolution">分辨率</div>          -->
+
+      <div style="margin: 0 auto; height: 68%; width: 100%; margin-top: 100px; background: black;" id="remoteVideo">
+          <video   autoplay="playsinline" id="remote-stream-video" style="width: 100%;height: 100%;" class="remote" onclick="ClickVideoScreeen()" ondblclick="DoubleClickScreen()"></video>
+          <audio autoplay="" id="remote-stream-audio"></audio>
+          <img src="./sounds/loading.gif"  id="AnimationLoading" style="position: absolute; top: 30%;left: 50%; width: 80px;height: 80px; display: none; " alt="">
+      </div>
+
+      <div class="screenDiv" id="screenButton" style="width: 25px; height: 25px;position: absolute;top:  30px; right: 30px;">
+          <img src="./sounds/Screen.png" alt="" style="width: 100%; height: 100%; cursor: pointer;" id="ScreenImg"  onclick="ScreenClick()">
+      </div>
+      <div  id="VideoTopDiv" style="position: absolute;top: 10;left: 50%;margin-left: -35px; cursor: pointer;" onclick="ShowVideoMessage()">  
+          <!-- <div style="color: white;margin-top:20px; text-align: center; width: 100%;">视频通话</div> -->
+          <div style="color: white;margin-top: 10px;margin-bottom: 5px; font-size: 14px;" id="VideoCallName"></div>
+          <span style="color: white;margin-top: 10px;" id="state">00:00</span> 
+          <div style="color: white;margin-top: 5px;font-size: 12px;" id="Resolution">分辨率</div>      
+              
+      </div>
+     
+      <div class="row" style=" width: 100%; margin: 0 auto;position: absolute;bottom: 0px; text-align: center;" id="VideoBottom">
+        <!-- 功能键 -->
+        <div style="margin-left: 170px; position: absolute; bottom: 0px;height: 80px;" id="VideoBottomAuto" >
+            <div class="div_inLine">
+                <img id="audio-btn" src="./sounds/Audio.png" class="VideoCallStataeImage">
+                <p class="VideoactionText" style="color: white;">麦克风</p>
+              </div>
+              <div class="div_inLine">
+                  <img id="Speaker-btn" src="./sounds/Speaker.png"class="VideoCallStataeImage">
+                  <p class="VideoactionText" style="color: white;">扬声器</p>
+              </div>
+              <div class="div_inLine">
+                  <img id="video-btn" src="./sounds/Video.png"class="VideoCallStataeImage">    
+                  <p class="VideoactionText" style="color: white; ">视频</p>
+              </div>
+        </div>
+        <!-- 本地视频 -->
+        <div  class="Local"  id="VideoLocal">
+          <video  autoplay="playsinline" muted ="muted" id="local-stream-video"  style="cursor: pointer; width: 100%;height: 100%; background: black;"></video>
+        </div>
+
+        <!-- 挂断键 -->
+        <div style="position: absolute;right: 120px;bottom: 0px;" id="VideoHangUpAuto">
+            <div class="div_inLine">
+                <img id="hangup-btn" src="./sounds/HangUp.png" class="VideoCallStataeImage" style="margin-right: 100px; width: 40px;">
+                <p class="VideoactionText" style="color: white; margin-right: 100px;">挂断</p>
+            </div>
+        </div>
+
+      </div>
+      <!-- 展示消息 -->
+      
+      
+    </div>
+    <div id="container">
+      <ul id="keyboard">
+        <li class="symbol"><span class="off">`</span><span class="on">~</span></li>
+        <li class="symbol"><span class="off">1</span><span class="on">!</span></li>
+        <li class="symbol"><span class="off">2</span><span class="on">@</span></li>
+        <li class="symbol"><span class="off">3</span><span class="on">#</span></li>
+        <li class="symbol"><span class="off">4</span><span class="on">$</span></li>
+        <li class="symbol"><span class="off">5</span><span class="on">%</span></li>
+        <li class="symbol"><span class="off">6</span><span class="on">^</span></li>
+        <li class="symbol"><span class="off">7</span><span class="on">&amp;</span></li>
+        <li class="symbol"><span class="off">8</span><span class="on">*</span></li>
+        <li class="symbol"><span class="off">9</span><span class="on">(</span></li>
+        <li class="symbol"><span class="off">0</span><span class="on">)</span></li>
+        <li class="symbol"><span class="off">-</span><span class="on">_</span></li>
+        <li class="symbol"><span class="off">=</span><span class="on">+</span></li>
+        <li class="delete lastitem">Back</li>
+        <li class="tab">tab</li>
+        <li class="letter">q</li>
+        <li class="letter">w</li>
+        <li class="letter">e</li>
+        <li class="letter">r</li>
+        <li class="letter">t</li>
+        <li class="letter">y</li>
+        <li class="letter">u</li>
+        <li class="letter">i</li>
+        <li class="letter">o</li>
+        <li class="letter">p</li>
+        <li class="symbol"><span class="off">[</span><span class="on">{</span></li>
+        <li class="symbol"><span class="off">]</span><span class="on">}</span></li>
+        <li class="symbol lastitem"><span class="off">\</span><span class="on">|</span></li>
+        <li class="capslock">caps lock</li>
+        <li class="letter">a</li>
+        <li class="letter">s</li>
+        <li class="letter">d</li>
+        <li class="letter">f</li>
+        <li class="letter">g</li>
+        <li class="letter">h</li>
+        <li class="letter">j</li>
+        <li class="letter">k</li>
+        <li class="letter">l</li>
+        <li class="symbol"><span class="off">;</span><span class="on">:</span></li>
+        <li class="symbol"><span class="off">'</span><span class="on">&quot;</span></li>
+        <li class="return lastitem">enter</li>
+        <li class="left-shift">shift</li>
+        <li class="letter">z</li>
+        <li class="letter">x</li>
+        <li class="letter">c</li>
+        <li class="letter">v</li>
+        <li class="letter">b</li>
+        <li class="letter">n</li>
+        <li class="letter">m</li>
+        <li class="symbol"><span class="off">,</span><span class="on">&lt;</span></li>
+        <li class="symbol"><span class="off">.</span><span class="on">&gt;</span></li>
+        <li class="symbol"><span class="off">/</span><span class="on">?</span></li>
+        <li class="right-shift lastitem">shift</li>
+        <li class="space lastitem">&nbsp;</li>
+        <!-- <li class="Down">&nbsp;收起键盘</li> -->
+      </ul>
+    </div>
+
+      <!-- vidoRoom -->
+      <div class="VideoRoom" id="RoomBottomView" style="text-align: center;overflow: auto;  margin-top:0px; width: 100%;height:100%; position: relative;">
+          <!-- <div class="backControl" style="width: 100%; height: 44px;background: white;" >
+            <img src="./sounds/Back.png" style="margin-top: 2px;position: absolute; left: 10px; width: 40px; height: 40px; padding: 10px; display: inline-block;" alt="" onclick="RoombackClick()">
+            <div style="color: black; text-align: center; width: 100%;line-height: 44px;" id="RoomName">房间 1234</div>
+        </div> -->
+        <div class="screenDiv" id="screenButton" style="width: 70px; height: 70px;position: absolute; right: 20px;top: 10px; z-index: 99;">
+          <img src="./sounds/Screen.png" alt="" style="width: 25px; height: 25px; margin-top: 10px; cursor: pointer;" id="RoomScreenImg">
+      </div>
+        <div style="text-align: center;">
+          
+          <div style="color: white;margin-top: 10px;margin-bottom: 5px; font-size: 14px;" id="RoomName">房间:</div>
+          <span style="color: white;margin-top: 10px;" id="Roomstate">00:00</span> 
+          <!-- <div style="width: 100px;height: 30px;color: darkgoldenrod;text-align: center;" onclick="LoginVideoRoom()">点击登录</div> -->
+        </div>
+        <div style=" margin: 60px auto; width: 940px; height: 640px; margin-top: 20px;text-align: center;" id="remoteVideoDiv">
+          <div style="text-align: center;">
+              <div style="margin: 0 auto;  flex-direction: row; flex-wrap: wrap;">
+
+                  <div class="videoContain" id="LocalVideoDiv" ondblclick="VideoClick()">
+                      <video autoplay=""  muted ="muted" id="Local-Roomstream-video0" class="VideoRoomremote"></video>  
+                      <div class="remotename" id="LocalName"></div>
+                  </div>
+                  
+
+               <div class="videoContain" id="remoteDiv0" ondblclick="DisPlayVideo(0)">
+                  <video autoplay=""  id="remote-Roomstream-video0" class="VideoRoomremote"></video>
+                  <div class="remotename" id="RemoteName0"></div>
+               </div>
+                  
+                  <div class="videoContain" id="remoteDiv1" ondblclick="DisPlayVideo(1)">
+                      <video autoplay="" id="remote-Roomstream-video1" class="VideoRoomremote"></video>
+                      <div class="remotename" id="RemoteName1"></div>
+                  </div>
+                  
+                  <div class="videoContain" id="remoteDiv2" ondblclick="DisPlayVideo(2)">
+                      <video  autoplay="" id="remote-Roomstream-video2" class="VideoRoomremote"></video>
+                      <div class="remotename" id="RemoteName2"></div>
+                  
+                  </div>
+                  
+                  <div class="videoContain" id="remoteDiv3" ondblclick="DisPlayVideo(3)">
+                      <video autoplay="" id="remote-Roomstream-video3" class="VideoRoomremote"></video>
+                      <div class="remotename" id="RemoteName3"></div>
+                    
+                  </div>
+                  <div class="videoContain" id="remoteDiv4" ondblclick="DisPlayVideo(4)">
+                      <video  autoplay="" id="remote-Roomstream-video4" class="VideoRoomremote"></video>
+                      <div class="remotename" id="RemoteName4"></div>
+                      
+                  </div>
+                  <div class="videoContain" id="remoteDiv5" ondblclick="DisPlayVideo(5)">
+                      <video  autoplay="" id="remote-Roomstream-video5" class="VideoRoomremote"></video>
+                      <div class="remotename" id="RemoteName5"></div>
+                    
+                  </div>
+                  <div class="videoContain" id="remoteDiv6" ondblclick="DisPlayVideo(6)">
+                    
+                    <video  autoplay="" id="remote-Roomstream-video6" class="VideoRoomremote"></video>
+                    <div class="remotename" id="RemoteName6"></div>
+                  
+                </div>
+                <div class="videoContain" id="remoteDiv7" ondblclick="DisPlayVideo(7)">
+                  
+                  <video  autoplay="" id="remote-Roomstream-video7" class="VideoRoomremote"></video>
+                  <div class="remotename" id="RemoteName7"></div>
+                
+              </div>
+              </div>
+          </div> 
+        </div>
+        <div style="width: 100%; position: absolute; bottom: 150px; top: 80px; display: none;"id="BigVideoID" onclick="ClickBigVideo()">
+          <video  autoplay=""  muted ="muted"  id="remote-BigVideo" class="BigVideoRoomremote"></video>
+      </div>
+      
+      <div style="left: 50%; margin-left: -100px; position: absolute;bottom: 0px; height: 80px;" id="RoomBottomItem">
+        <div class="div_inLine">
+          <img id="Roomaudio-btn" src="./sounds/Audio.png" class="VideoCallStataeImage">
+          <p class="VideoactionText" style="color: white;">麦克风</p>
+        </div>
+        <div class="div_inLine">
+          <img id="RoomSpeaker-btn" src="./sounds/Speaker.png"class="VideoCallStataeImage">
+          <p class="VideoactionText" style="color: white;">扬声器</p>
+      </div>
+        <div class="div_inLine">
+            <img id="Roomvideo-btn" src="./sounds/Video.png"class="VideoCallStataeImage">    
+            <p class="VideoactionText" style="color: white; ">视频</p>
+        </div>
+        <div class="div_inLine">
+          <img id="Roomhangup-btn" src="./sounds/HangUp.png" class="VideoCallStataeImage" style="margin-right: 100px; width: 40px;">
+          <p class="VideoactionText" style="color: white; margin-right: 100px;">挂断</p>
+      </div>
+      </div>
+    </div>
+  
+      <!-- 弹窗 -->
+    <div class="alertVC" id="AlertBottomView" style="width: 100%; height: 30px; position: absolute; bottom: 120px; text-align: center;display: none" >
+        <div id="alertText" style="color: white; font-size: 13px;"></div>
+    </div>
+
+  <script src="node_modules/jquery/dist/jquery.min.js"></script>
+  <script src="node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="node_modules/webrtc-adapter/out/adapter.js"></script>
+  <script src="lib/janus-0.7.5.js"></script>
+  <!-- <script src="src/js/app.js"></script> -->
+  <script src="src/js/webrtc-phone.js"></script>
+  <script src="src/js/keyboard.js"></script>
+  <script language="javascript" type="text/javascript">
+  
+    $('.index').show();
+    $('.CallVC').hide();
+    $('.CommingCall').hide();
+    $('.AudioCallVC').hide();
+    $('.VideoCallVC').hide();   
+    $('.SetVC').hide();
+    $('.VideoRoom').hide()
+    $('.MessageVC').hide()
+
+    let url = window.location.href; 
+    let TiitlID = document.getElementById("TitleID")
+    let LoginTitle = document.getElementById("LoginTitle")
+    // if(url.indexOf("UP") >= 0){
+    //   TiitlID.innerText = "指挥调度客服端";
+    //   LoginTitle.innerText = "指挥调度客服端";
+    // }else{
+    //   TiitlID.innerText = "ClairEye";
+    //   LoginTitle.innerText = "ClairEye";
+    // }
+    
+    // window.onbeforeunload = function(){
+    //   console.log('关闭')
+    // }
+  
+    // $('body').on('touchmove', function (event) {event.preventDefault();});
+  </script>
+  </body>
+  </html>

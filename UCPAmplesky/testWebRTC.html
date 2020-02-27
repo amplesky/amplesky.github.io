@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>接口测试</title>
+    <script type="text/javascript" src="AmpleskyWebrtc.js"></script>
+</head>
+
+<body οnbefοreunlοad="doHangup()">
+    WebRTC网关：<input type="text" name="janus_server" id="janus_server" placeholder="请输入WebRTC网关后台地址" value="10.100.86.215">&nbsp;&nbsp;&nbsp;&nbsp;
+    mcu地址：<input type="text" name="mcu_server" id="mcu_server" placeholder="请输入mcu后台地址" value="10.100.86.215">
+    用户号：<input type="text" name="username" id="username" placeholder="请输入用户号" value="889">
+    <button id="regist" onclick="login()">注册</button>
+    <br />
+    被呼对方用户号:<input type="text" name="callee" id="callee" value="193">
+    <button id="CallButton" onclick="doCall()">call</button>
+    <button onclick="doHangup()">hangup</button>
+    <br />
+    <div id="video_container">
+        <video controls autoplay id="remote-stream-video" width="800" height="450"></video>
+        <audio autoplay id="remote-stream-audio"></audio>
+        <video controls autoplay id="local-stream-video" width="250" height="150"></video>
+    </div>
+    <script type="text/javascript">
+    $("#username").val();
+    $("#janus_server").val();
+    $("#mcu_server").val();
+
+    // LogingState 登录状态标志 状态值为 1,0
+    function login() {
+        CallButton = document.getElementById("CallButton");
+        var num = 0
+    	AmpleskyWebRTC.login($("#username").val(), $("#janus_server").val(), $("#mcu_server").val(),function(LogingState){
+            num ++
+                console.log("======执行了====" + String(num))
+            
+            if(LogingState){
+                regist = document.getElementById("regist");
+                regist.style.background = "green"   
+                // AmpleskyWebRTC.call($("#callee").val(), true, true,true, true, 'remote-stream-video', 'remote-stream-audio', 'local-stream-video',function(CallState){
+        //     console.log(CallState)
+        // });
+            }  
+        },function(errorBack){
+            AmpleskyWebRTC.hangup()
+            alert(errorBack)
+        },function(callstateMessage){
+            switch (callstateMessage) {
+
+                case 'calling':
+                $('#CallButton').attr('disabled','disabled');
+    
+                    break;
+                case 'accepted':
+                $('#CallButton').attr('disabled','disabled');
+                    break;
+                case 'incomingcall':
+                    AmpleskyWebRTC.getCommingCall(function(message){
+                        if(confirm(message + '来电')){
+                        AmpleskyWebRTC.accept('remote-stream-video', 'remote-stream-audio', 'local-stream-video')
+
+                    } else{
+                        AmpleskyWebRTC.decline()
+                    }
+                    })
+                   
+                break;
+                case 'hangup':
+                    console.log('===772====')
+                $('#CallButton').removeAttr('disabled');
+                    break;
+                default:
+                break;                   
+            }
+        },function(jsonMsg){
+            var result = jsonMsg["result"];
+        if (result !== null && result !== undefined && result["event"] !== undefined && result["event"] !== null) {
+          var event = result["event"];
+          switch (event) {
+            case 'registration_failed':
+               
+              return;
+              break;
+
+            case 'registered':
+                console.log('=====注册======')
+              break;
+
+            case 'unregistered':
+                
+              break;
+
+            case 'calling':
+                
+              // 
+              Janus.log("Waiting for the peer to answer...");
+              
+              break;
+              
+            case 'incomingcall':
+             
+              break;
+
+            case 'progress':
+            
+              break;
+
+            case 'accepted':
+                
+             
+              break;
+
+            case 'hangup':
+
+              break;
+            case 'decline':
+               
+            break
+            default:
+              break;
+          }
+
+
+        }  
+        },function(jsp){
+            if(jsp != null){
+            console.log(jsp)
+          var videoCall = false
+          videoCall = (jsp.sdp.indexOf("m=video ") > -1);  
+        }
+        });
+    }
+
+    //CallState 呼叫状态标志 状态值为 1,0 控制音视频传值为:视频发送,视频接收 ,音频发送,音频接收,BOOL值传true或false
+    function doCall() {
+        AmpleskyWebRTC.call($("#callee").val(), true, true,true, true, 'remote-stream-video', 'remote-stream-audio', 'local-stream-video',function(CallState){
+            console.log(CallState)
+        });
+    }
+
+    function doHangup() {
+        AmpleskyWebRTC.hangup();
+        
+    }
+    </script>
+</body>
+
+</html>

@@ -90,7 +90,7 @@
 
      function Downloadios(){
         // if(isIos()){
-            window.location.href='itms-services:///?action=download-manifest&url=https://amplesky.github.io/appinfo.plist'
+            window.location.href='itms-services:///?action=download-manifest&url=https://amplesky.github.io/CEappinfo.plist'
         // }else{
         //     alert("Android设备,请下载Android安装包")
         // }
@@ -109,16 +109,16 @@
         isIos
 } 
 
-    var ajax = new XMLHttpRequest()
-    ajax.open('get','')
-    ajax.send()
-    ajax.onreadystatechange = function(){
-        console.log(ajax.responseText);
-        // 转化为 js对象
-                var jsObj = JSON.parse(ajax.responseText);
+    // var ajax = new XMLHttpRequest()
+    // ajax.open('get','https://amplesky.github.io/version.json')
+    // ajax.send()
+    // ajax.onreadystatechange = function(){
+    //     console.log(ajax.responseText);
+    //     // 转化为 js对象
+    //             var jsObj = JSON.parse(ajax.responseText);
 
-                console.log(jsObj);
-    }
+    //             console.log(jsObj);
+    // }
 
 
 

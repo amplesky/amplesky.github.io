@@ -1589,12 +1589,12 @@ function localPublishClick() {
   if(localVideo){
     localPublish.innerText = 'unpublisher'
     localRoomstreamvideo.style.display = 'none'
-    webrtcPhone.unpublishOwnFeed()
+    // webrtcPhone.unpublishOwnFeed()
   }else{
     localPublish.innerText = 'publisher'
     localRoomstreamvideo.style.display = 'block'
     localRoomstreamvideo.style.margin = '0 auto'
-    webrtcPhone.publishOwnFeed()
+    // webrtcPhone.publishOwnFeed()
   }
 }
 //记录是否接听过

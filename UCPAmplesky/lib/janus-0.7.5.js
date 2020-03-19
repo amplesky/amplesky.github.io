@@ -26,6 +26,9 @@
 Janus.sessions = {};
 var WertcSessionID = ""
 var peerConnect;
+var RemberLocalStream
+let Rembercount = 0
+let ChangeLocal = false
 Janus.isExtensionEnabled = function() {
 	if(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
 		// No need for the extension, getDisplayMedia is supported
@@ -619,7 +622,7 @@ function Janus(gatewayCallbacks) {
 	function handleEvent(json, skipTimeout) {
 		retries = 0;
 		if(!websockets && sessionId !== undefined && sessionId !== null && skipTimeout !== true)
-		setTimeout(eventHandler, 200);
+			eventHandler();
 		if(!websockets && Janus.isArray(json)) {
 			// We got an array: it means we passed a maxev > 1, iterate on all objects
 			for(var i=0; i<json.length; i++) {
@@ -1170,7 +1173,7 @@ function Janus(gatewayCallbacks) {
 								timer : null
 							}
 						},
-						
+						getPeerconnection:function(){return peerConnect},
 						getId : function() { return handleId; },
 						getPlugin : function() { return plugin; },
 						getVolume : function() { return getVolume(handleId, true); },
@@ -1197,6 +1200,9 @@ function Janus(gatewayCallbacks) {
 						handleRemoteJsep : function(callbacks) { prepareWebrtcPeer(handleId, callbacks); },
 						destroySession:function(callbacks){
 							destroySession(callbacks)
+						},
+						ChangeLocalStream:function(isLocal){
+							ChangeLocalStream(isLocal)
 						},
 						
 						onlocalstream : callbacks.onlocalstream,
@@ -1285,6 +1291,9 @@ function Janus(gatewayCallbacks) {
 						createOffer : function(callbacks) { prepareWebrtc(handleId, true, callbacks); },
 						createAnswer : function(callbacks) { prepareWebrtc(handleId, false, callbacks); },
 						handleRemoteJsep : function(callbacks) { prepareWebrtcPeer(handleId, callbacks); },
+						ChangeLocalStream:function(isLocal){
+							ChangeLocalStream(isLocal)
+						},
 						onlocalstream : callbacks.onlocalstream,
 						onremotestream : callbacks.onremotestream,
 						ondata : callbacks.ondata,
@@ -1353,6 +1362,18 @@ function Janus(gatewayCallbacks) {
 					Janus.log("Synchronous transaction successful (" + plugindata["plugin"] + ")");
 					var data = plugindata["data"];
 					Janus.debug(data);
+					var result = data['permanent'];
+					var Room = data["videoroom"]
+					var exitRoom = data["exists"]
+					if(Room == "created" && result === true){
+						$(document).trigger('CreatSuccess');
+					}else if(Room == "success" && exitRoom == true){
+						$(document).trigger('RoomExists');
+					}else if(Room == "success" && exitRoom == false){
+						$(document).trigger('RoomExistsFail');
+					}else if(result == undefined && Room == "event"){
+						$(document).trigger('CreatFail');
+					}
 					callbacks.success(data);
 					return;
 				} else if(json["janus"] !== "ack") {
@@ -1443,7 +1464,7 @@ function Janus(gatewayCallbacks) {
 		if(apisecret !== null && apisecret !== undefined)
 			request["apisecret"] = apisecret;
 		Janus.vdebug("Sending trickle candidate (handle=" + handleId + "):");
-		Janus.vdebug(request);
+		// Janus.vdebug(request);
 		if(websockets) {
 			request["session_id"] = sessionId;
 			request["handle_id"] = handleId;
@@ -1685,6 +1706,32 @@ function Janus(gatewayCallbacks) {
 		});
 	}
 
+	//改变当前本地视频
+	function ChangeLocalStream(local){
+		ChangeLocal = 	local
+	}
+
+	function GetScreen(){
+		navigator.mediaDevices.getDisplayMedia({ video: true, audio: media.captureDesktopAudio })
+							.then(function(stream) {
+								pluginHandle.consentDialog(false);
+								if(isAudioSendEnabled(media) && !media.keepAudio) {
+									navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+									.then(function (audioStream) {
+										stream.addTrack(audioStream.getAudioTracks()[0]);
+										streamsDone(handleId, jsep, media, callbacks, stream);
+									})
+								} else {
+									streamsDone(handleId, jsep, media, callbacks, stream);
+								}
+							}, function (error) {
+								pluginHandle.consentDialog(false);
+								callbacks.error(error);
+							});
+	}
+
+
+
 	// WebRTC stuff
 	function streamsDone(handleId, jsep, media, callbacks, stream) {
 		var pluginHandle = pluginHandles[handleId];
@@ -1701,15 +1748,24 @@ function Janus(gatewayCallbacks) {
 			Janus.debug("  -- Video tracks:", stream.getVideoTracks());
 		}
 		// We're now capturing the new stream: check if we're updating or if it's a new thing
+		if(stream != null && stream  != undefined && Rembercount == 0){
+			Rembercount = 1
+			RemberLocalStream = stream
+		}
+
+		if(ChangeLocal){
+			stream = RemberLocalStream	
+		}		
+
 		var addTracks = false;
-		if(!config.myStream || !media.update || config.streamExternal) {
+		if(!config.myStream ) {
 			config.myStream = stream;
 			addTracks = true;
 		} else {
 			// We only need to update the existing stream
-			if(((!media.update && isAudioSendEnabled(media)) || (media.update && (media.addAudio || media.replaceAudio))) &&
-					stream.getAudioTracks() && stream.getAudioTracks().length) {
-				config.myStream.addTrack(stream.getAudioTracks()[0]);
+			if(!media.update) {//&& stream.getAudioTracks().length
+						config.myStream = stream;
+				// config.myStream.addTrack(stream.getAudioTracks()[0]);
 				if(Janus.unifiedPlan) {
 					// Use Transceivers
 					Janus.log((media.replaceAudio ? "Replacing" : "Adding") + " audio track:", stream.getAudioTracks()[0]);
@@ -1852,10 +1908,13 @@ function Janus(gatewayCallbacks) {
 				event.track.onended = function(ev) {
 					Janus.log("Remote track muted/removed:", ev);
 						$(document).trigger('Videomuted');
+						// $(document).trigger('RoomVideomuted');
+						// config.remoteStream.e = true
 					if(config.remoteStream) {
 						// config.remoteStream.removeTrack(ev.target);
-						// pluginHandle.onremotestream(config.remoteStream);
+						// ev.onremotestream(config.remoteStream);
 					}
+					return true
 				};
 				// if(event.track.onended){
 				
@@ -1865,6 +1924,7 @@ function Janus(gatewayCallbacks) {
 				event.track.onmute = event.track.onended;
 				event.track.onunmute = function(ev) {
 					Janus.log("Remote track flowing again:", ev);
+					
 					$(document).trigger('VideoUnmuted');
 					try {
 						console.log(config.remoteStream)
@@ -1873,6 +1933,7 @@ function Janus(gatewayCallbacks) {
 					} catch(e) {
 						Janus.error(e);
 					};
+					return false
 				};
 			};
 		}
@@ -1949,6 +2010,7 @@ function Janus(gatewayCallbacks) {
 	}
 
 	function prepareWebrtc(handleId, offer, callbacks) {
+		
 		callbacks = callbacks || {};
 		callbacks.success = (typeof callbacks.success == "function") ? callbacks.success : Janus.noop;
 		callbacks.error = (typeof callbacks.error == "function") ? callbacks.error : webrtcError;
@@ -1965,6 +2027,7 @@ function Janus(gatewayCallbacks) {
 		callbacks.media = callbacks.media || { audio: true, video: true };
 		var media = callbacks.media;
 		var pluginHandle = pluginHandles[handleId];
+		media.update = false
 		if(pluginHandle === null || pluginHandle === undefined ||
 				pluginHandle.webrtcStuff === null || pluginHandle.webrtcStuff === undefined) {
 			Janus.warn("Invalid handle");
@@ -2112,8 +2175,10 @@ function Janus(gatewayCallbacks) {
 			if((isAudioSendEnabled(media) && media.keepAudio) &&
 					(isVideoSendEnabled(media) && media.keepVideo)) {
 				pluginHandle.consentDialog(false);
+				media.update = false
+				// media.replaceVideo = tru
 				streamsDone(handleId, jsep, media, callbacks, config.myStream);
-				return;
+				// return;
 			}
 		}
 		// If we're updating, check if we need to remove/replace one of the tracks
@@ -2283,6 +2348,11 @@ function Janus(gatewayCallbacks) {
 						// The new experimental getDisplayMedia API is available, let's use that
 						// https://groups.google.com/forum/#!topic/discuss-webrtc/Uf0SrR4uxzk
 						// https://webrtchacks.com/chrome-screensharing-getdisplaymedia/
+						// media.update = false
+						// media.keepVideo = true;
+						// media.replaceVideo = true
+						// media.replaceAudio = true
+						media.update = false
 						navigator.mediaDevices.getDisplayMedia({ video: true, audio: media.captureDesktopAudio })
 							.then(function(stream) {
 								pluginHandle.consentDialog(false);
@@ -2476,6 +2546,7 @@ function Janus(gatewayCallbacks) {
 	}
 
 	function getMedia(gumConstraints, handleId, jsep, media, callbacks, stream, audioExist, videoExist, audioSupport, videoSupport, pluginHandle) {
+		media.update = false
 		navigator.mediaDevices.getUserMedia(gumConstraints)
 			.then(function(stream) {
 				pluginHandle.consentDialog(false);

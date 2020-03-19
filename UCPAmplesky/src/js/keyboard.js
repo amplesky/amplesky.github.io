@@ -5,11 +5,20 @@ $(
 
 	var MCu = document.getElementById('MCu')
 	var GateWay = document.getElementById('GateWay-ip')
-
+	var WatchPass = document.getElementById('WatchPass')
+	
 	var Account = document.getElementById('Account')
 	var passward = document.getElementById('passward')
 
 	var Callto = document.getElementById('call-to')
+	var TurnWatch = document.getElementById('TurnWatch')
+	
+	TurnWatch.onclick = function(e){
+		e.stopPropagation();//阻止事件冒泡即可 
+	}
+	WatchPass.onclick = function(e){
+		e.stopPropagation();//阻止事件冒泡即可 
+	}
 	Account.onclick=function (e) { 
         e.stopPropagation();//阻止事件冒泡即可 
         //e.cancelBubble=true;//非标准的IE方式:;  这里的cancelBubble是 IE事件对象的属性，设为true就可以了
@@ -149,7 +158,7 @@ $(
 
 
 
-
+	
 let netstate = true
 let isotherPage = false
 	let accountobject = document.getElementById('Account')
@@ -248,7 +257,7 @@ var VideoCallName = document.getElementById('VideoCallName')
 var ListenTime
 var areadyReLogin = false;
 let AlertBottomView = document.getElementById('AlertBottomView')
-
+var IgnoreHungup
 //标志是否有mic
 let isAudioenabel = false
 //标志是否有camer
@@ -256,7 +265,15 @@ let isVideoenabel = false
 //标志meet是否可以使用
 let isMeetingEn = false
 
+let isLiveEn = false
+
 $(document).on('incomingcall', function (ev, from) {
+
+	if(isotherPage){
+		webrtcPhone.decline()
+		return 
+	}
+
   webrtcPhone.initHtmlTag("remote-stream-video", "remote-stream-audio", "local-stream-video")
   commingCall = 1;  
   isotherPage = true
@@ -404,6 +421,11 @@ $(document).on('Busy', function (ev) {
 })
 let CallMessageTimer
 $(document).on('hangup', function (ev,code,messgae) {
+
+	if(isotherPage){
+		return;
+	}
+
   clearInterval(ListenTime);
   isotherPage = false
   $('.CommingCall').hide();
@@ -685,6 +707,8 @@ function isCanCall(audioEn,videoEn){
 let audioImage = document.getElementById('call-audio-btn')
 let videoImage = document.getElementById('call-audio-video-btn')
 let meetingImage = document.getElementById('Meeting-audio-video-btn')
+let LiveImage = document.getElementById('Live-Video-video-btn')
+
 if(audioEn && netstate){
   audioImage.style.backgroundColor = "#96c11f"
   isAudioenabel = true
@@ -706,6 +730,14 @@ if(audioEn && videoEn && netstate){
   meetingImage.style.backgroundColor = "#bbb"
   isMeetingEn = false
 } 
+
+if(audioEn && videoEn && netstate){
+	LiveImage.style.backgroundColor = "#96c11f"
+	isLiveEn = true
+  }else{
+	LiveImage.style.backgroundColor = "#bbb"
+	isLiveEn = false
+  } 
 }
 
 function ShowAlertText(text) {
@@ -754,6 +786,17 @@ ListenTime = setInterval(function() {
 
 });
 
+let RoomVideo0 = document.getElementById('remote-Roomstream-video0');
+let RoomVideo1 = document.getElementById('remote-Roomstream-video1');
+let RoomVideo2 = document.getElementById('remote-Roomstream-video2');
+let RoomVideo3 = document.getElementById('remote-Roomstream-video3');
+let RoomVideo4 = document.getElementById('remote-Roomstream-video4');
+let RoomVideo5 = document.getElementById('remote-Roomstream-video5');
+let RoomVideo6 = document.getElementById('remote-Roomstream-video6');
+let RoomVideo7 = document.getElementById('remote-Roomstream-video7');
+
+
+
 $(document).on('VideoUnmuted', function (ev) {
 AnimationLoading.style.display = 'none'
 })
@@ -765,6 +808,18 @@ $('#logout-btn').click(function () {
   webrtcPhone.hangup();
 });
 
+
+let VideoShare = false
+$('#VideoShare-btn').click(function () {
+	VideoShare = !VideoShare
+	webrtcPhone.preShareScreen(VideoShare,true)
+	if(VideoShare){
+		$('#VideoShare-btn').attr('src', './sounds/Share.png');		
+	}else{
+		$('#VideoShare-btn').attr('src', './sounds/ScreenShare.png');
+	}
+
+})
 
 $('#audio-btn').click(function () {
   clickAcion()
@@ -840,6 +895,18 @@ $('#hangup-btn').click(function () {
 });
 
 //会议房间
+
+let ScreenShare  = false
+$('#RoomShare-btn').click(function () {
+	ScreenShare = !ScreenShare
+	webrtcPhone.preShareScreen(ScreenShare,false)
+	if(ScreenShare){
+		$('#RoomShare-btn').attr('src', './sounds/Share.png');		
+	}else{
+		$('#RoomShare-btn').attr('src', './sounds/ScreenShare.png');
+	}
+});
+
 $('#Roomaudio-btn').click(function () {
 	clickAcion()
 	webrtcPhone.mut()
@@ -899,6 +966,46 @@ $('#RoomSpeaker-btn').click(function () {
 	  AudioSpeaker = false
   });
 
+  let watchRemoteVideo = document.getElementById("watchRemoteVideo")
+  let watchMut = false;
+  //Streaming 关闭扬声器
+  $('#WatchSpeakImage').click(function () {
+	watchMut = !watchMut
+	if(watchMut){
+		watchRemoteVideo.muted = true
+		$('#WatchSpeakImage').attr('src', './sounds/NoSpeaker.png');
+		AlertAction("扬声器关闭")
+	}else{
+		WatchAudioUnMut()
+	}
+  })
+
+  function WatchAudioUnMut(){
+	$('#WatchSpeakImage').attr('src', './sounds/Speaker.png');
+		AlertAction("扬声器打开")
+		watchRemoteVideo.muted = false  
+  }
+
+  //Streaming 挂断
+  $('#Watchhangup-btn').click(function () {
+	webrtcPhone.stopStream();
+	WatchAudioUnMut()
+	CancleTime()
+	showPageWithIndex(1)
+	Shownum = 1
+	isotherPage = false
+	clickAcion()
+	AlertAction("退出会议房间")
+	clearTimeout(VideoCallTimeOut)
+	WatchVideoDiv.style.height = '83%'
+	WatchVideoDiv.style.marginTop = '75px'
+	$("#WatchBottom").animate({bottom:'0px'});
+	  $("#WatchVideoTopDiv").animate({top:'10px'});
+	  $("#WatchscreenButton").animate({top:'30px'});
+
+
+
+  });
 
 
 $('#answer-btn').click(function () {
@@ -984,6 +1091,9 @@ return
 	  return
 	}
   }
+
+  IgnoreHungup = true
+  	webrtcPhone.exitRoom()
   	isotherPage = true
   	CallNumber = $('#call-to').val();
   	RoomNnumber = Number(CallNumber)
@@ -999,6 +1109,66 @@ return
 	  $('#RoomSpeaker-btn').attr('src', './sounds/Speaker.png');
   	showPageWithIndex(6)
 })
+
+let  pasVC = document.getElementById('WachPass')
+$('#Live-Video-video-btn').click(function (){
+	if (!netstate) {
+		ShowAlertText("与服务器已断开连接,请刷新重新登录或等待自动登录成功")
+	  return
+	  }
+		if(!isLiveEn){
+		  if(!isAudioenabel && !isVideoenabel){
+			ShowAlertText("camer和mic必须都可使用才能开启会议")
+			return
+		  }else if(!isAudioenabel && isVideoenabel){
+			ShowAlertText("mic不可用")
+			return
+		  }else if(isAudioenabel && !isVideoenabel){
+			ShowAlertText("camer不可用")
+			return
+		  }
+		}
+		IgnoreHungup = true
+		pasVC.style.display = 'block'		
+})
+
+let ClickTurnWatch = document.getElementById('TurnWatch')
+let WatchPassInput = document.getElementById('WatchPass')
+let StreamName = document.getElementById("StreamName")
+ClickTurnWatch.onclick = function(e){
+	if(WatchPassInput.value.length > 0){
+		webrtcPhone.startStream(parseInt(WatchPassInput.value))
+		showPageWithIndex(7)
+		StreamName.innerText = '房间:' + WatchPassInput.value
+	}else{
+		ShowAlertText("请输入直播房间号")
+		pasVC.style.display = 'block'
+	}
+	e.stopPropagation()	
+}
+$(document).on('starting', function (ev) {
+	pasVC.style.display = 'none'
+})
+
+//直播已经开始
+$(document).on('started', function (ev) {
+	pasVC.style.display = 'none'	
+})
+
+//直播结束
+$(document).on('stopped', function (ev) {
+	pasVC.style.display = 'none'
+	showPageWithIndex(1)
+})
+
+//加入报错
+$(document).on('watcherror', function (ev,messgae){
+	ShowAlertText(messgae)
+	pasVC.style.display = 'none'
+	showPageWithIndex(1)
+})
+
+
 
 $(document).on('CreatSuccess', function (ev) {
 	RoomName.innerText = '房间: ' + String(RoomNnumber)
@@ -1244,6 +1414,8 @@ let isShowRoom = false
 let RoomBig = document.getElementById('BigVideoID')
 let RoomScreenImg = document.getElementById('RoomScreenImg')
 let RoomBottomItem = document.getElementById('RoomBottomItem')
+let remoteVideoDiv = document.getElementById('remoteVideoDiv')
+
 
 
 let isDbClick = false
@@ -1253,6 +1425,7 @@ let isScreen = false
 let HidTimer
 $(document).on('ShowBigVideo',function (ev) {
 	if(isDbClick){
+		remoteVideoDiv.style.display = 'none'
 		RoomBig.style.bottom = "150px"
 		RoomBig.style.top = '80px'
 		isDbClick = false
@@ -1261,6 +1434,7 @@ $(document).on('ShowBigVideo',function (ev) {
 		if(isChangeBig){
 			RoomBig.style.display = "none"
 			isChangeBig = false
+			remoteVideoDiv.style.display = 'block'
 		}
 	}else{
 			RoomBig.style.bottom = "0px"
@@ -1280,6 +1454,42 @@ function ClickBigVideo(){
 		clearTimeout(HidTimer)
 		$("#RoomBottomItem").animate({bottom:'0px'});
 		HidTimer =	setTimeout(RoomVideoTimer, 5000);
+	}
+}
+
+//观看的Video事件
+let WatchVideoDiv = document.getElementById('WatchVideoDiv')
+var iswatchScreen = false
+function WatchVideoClick(){
+	iswatchScreen = !iswatchScreen
+	if(iswatchScreen){
+		WatchVideoDiv.style.height = '100%'
+		WatchVideoDiv.style.marginTop = '0'
+		clearTimeout(VideoCallTimeOut)
+  		VideoCallTimeOut = setTimeout(wactchScreenHidenItem, 5000);
+	}else{
+		clearTimeout(VideoCallTimeOut)
+		WatchVideoDiv.style.height = '83%'
+		WatchVideoDiv.style.marginTop = '75px'
+		$("#WatchBottom").animate({bottom:'0px'});
+  		$("#WatchVideoTopDiv").animate({top:'10px'});
+  		$("#WatchscreenButton").animate({top:'30px'});
+	}
+}
+
+function wactchScreenHidenItem(){
+	$("#WatchBottom").animate({bottom:'-210px'});
+	$("#WatchVideoTopDiv").animate({top:'-210px'});
+	$("#WatchscreenButton").animate({top:'-210px'});
+}
+
+function ShowItem(){
+	if(iswatchScreen){
+	$("#WatchBottom").animate({bottom:'0px'});
+	$("#WatchVideoTopDiv").animate({top:'10px'});
+	$("#WatchscreenButton").animate({top:'30px'});
+	clearTimeout(VideoCallTimeOut)
+	  VideoCallTimeOut = setTimeout(wactchScreenHidenItem, 5000);	
 	}
 }
 
@@ -1315,6 +1525,8 @@ if (isScreen){
   }else{
 	$('#RoomScreenImg').attr('src', './sounds/NoScreen.png');
   }
+  $('#watchScreenImg').attr('src', './sounds/NoScreen.png');
+  
 
 }else{
   screenAction(false)
@@ -1323,6 +1535,7 @@ if (isScreen){
   }else{
 	$('#RoomScreenImg').attr('src', './sounds/Screen.png'); 
   }
+  $('#watchScreenImg').attr('src', './sounds/Screen.png'); 
   clearTimeout(VideoCallTimeOut)
   $("#VideoBottomAuto").animate({bottom:'0px'});
   $("#VideoHangUpAuto").animate({bottom:'0px'});
@@ -1696,7 +1909,10 @@ if(Screeninfo == 1){
 function Connect(){
 }
 
-
+let WatchPassVC = document.getElementById('WachPass')
+function DismissWatchPass(){
+	WatchPassVC.style.display = "none"	
+}
 
 let iceinfo = getTURN()
 if(iceinfo == null){
@@ -1850,6 +2066,8 @@ if (setState) {
 
 //影藏或显示视图
 function showPageWithIndex(indexNum){
+	
+	CancleTime()
 	VideoIsSCreen = false
 	isScreen = false;
 	let setinfo = getScreenInfo()
@@ -1860,83 +2078,152 @@ function showPageWithIndex(indexNum){
 		$('#ScreenImg').attr('src', './sounds/Screen.png');
 	  }
 	
-$('.MessageVC').hide();
-isShowRoom =false
-dissKeyBoard()
+	$('.MessageVC').hide();
+	isShowRoom =false
+	dissKeyBoard()
 switch(indexNum){
   case 0:
-	  $('.index').show();
-	  $('.CallVC').hide();
-	  $('.AudioCallVC').hide();
-	  $('.VideoCallVC').hide();
-	  $('.SetVC').hide();
-	  $('.VideoRoom').hide();
-	break;
+		$('.index').show();
+		$('.CallVC').hide();
+		$('.AudioCallVC').hide();
+		$('.VideoCallVC').hide();
+		$('.SetVC').hide();
+		$('.VideoRoom').hide();
+		$('.WatchVC').hide();
+		break;
   case 1:
-	  isotherPage = true
-	  $('.index').hide();
-	  $('.CallVC').show();
-	  $('.AudioCallVC').hide();
-	  $('.VideoCallVC').hide();
-	  $('.VideoRoom').hide();
-	  $('.SetVC').hide();
-	  
-	break;
+		isotherPage = true
+		$('.index').hide();
+		$('.CallVC').show();
+		$('.AudioCallVC').hide();
+		$('.VideoCallVC').hide();
+		$('.VideoRoom').hide();
+		$('.SetVC').hide();
+		$('.WatchVC').hide();
+		break;
   case 2:
-	  isotherPage = true
-	  $('.index').hide();
-	  $('.CallVC').hide();
-	  $('.AudioCallVC').show();
-	  $('.VideoCallVC').hide();
-	  $('.VideoRoom').hide();
-	  $('.SetVC').hide();
-	break;
+		isotherPage = true
+		$('.index').hide();
+		$('.CallVC').hide();
+		$('.AudioCallVC').show();
+		$('.VideoCallVC').hide();
+		$('.VideoRoom').hide();
+		$('.SetVC').hide();
+		$('.WatchVC').hide();
+		break;
   case 3:
-	  isotherPage = true
-	  $('.index').hide();
-	  $('.CallVC').hide();
-	  $('.AudioCallVC').hide();
-	  $('.VideoCallVC').show();
-	  $('.VideoRoom').hide();
-	  $('.SetVC').hide();
-	 break;     
+		isotherPage = true
+		$('.index').hide();
+		$('.CallVC').hide();
+		$('.AudioCallVC').hide();
+		$('.VideoCallVC').show();
+		$('.VideoRoom').hide();
+		$('.SetVC').hide();
+		$('.WatchVC').hide();
+	 	break;     
   case 4:
-	  $('.index').hide();
-	  $('.CallVC').hide();
-	  $('.AudioCallVC').hide();
-	  $('.VideoCallVC').hide();   
-	  $('.VideoRoom').hide();
-	  $('.SetVC').hide();
+		$('.index').hide();
+		$('.CallVC').hide();
+		$('.AudioCallVC').hide();
+		$('.VideoCallVC').hide();   
+		$('.VideoRoom').hide();
+		$('.SetVC').hide();
+		$('.WatchVC').hide();
 	break;     
   case 5:
-	  $('.index').hide();
-	  $('.CallVC').hide();
-	  $('.AudioCallVC').hide();
-	  $('.VideoCallVC').hide();  
-	  $('.SetVC').show();  
-	  $('.VideoRoom').hide();
+		$('.index').hide();
+		$('.CallVC').hide();
+		$('.AudioCallVC').hide();
+		$('.VideoCallVC').hide();  
+		$('.SetVC').show();  
+		$('.VideoRoom').hide();
+		$('.WatchVC').hide();
 	  break;
    case 6:
-	  $('.index').hide();
-	  $('.CallVC').hide();
-	  $('.AudioCallVC').hide();
-	  $('.VideoCallVC').hide();  
-	  $('.SetVC').hide();  
-	  $('.VideoRoom').show(); 
-	  isShowRoom= true
-	  isotherPage = true
+		IgnoreHungup = true
+		$('.index').hide();
+		$('.CallVC').hide();
+		$('.AudioCallVC').hide();
+		$('.VideoCallVC').hide();  
+		$('.SetVC').hide();  
+		$('.VideoRoom').show(); 
+		$('.WatchVC').hide();
+		isShowRoom= true
+		isotherPage = true
 	  break
+	case 7:
+		IgnoreHungup = true
+		$('.index').hide();
+	  	$('.CallVC').hide();
+	  	$('.AudioCallVC').hide();
+	  	$('.VideoCallVC').hide();  
+	  	$('.SetVC').hide();  
+	  	$('.VideoRoom').hide();
+		$('.WatchVC').show();
+		StartTimes()  
+		break
   default:
   break;
 
 }
 }
 
+//获取直播房间列表
+let ItemList = document.getElementById('ItemList')
+let ItemData = null
+function GetWatchList(){
+	if(ItemData == null){
+		webrtcPhone.watchLive(function backdata(callback){
+			ItemData = callback
+		if(Object.keys(callback).length > 0){
+			ItemList.style.display = 'block'
+			Object.keys(callback).map((key,index)=>{
+			let item = document.getElementById('Watch' + String(index))		
+			item.innerText = key
+		})
+	
+	}
+})	
+}else{
+	webrtcPhone.updateStreamsList(function backData(callBack){
+		ItemList.style.display = 'block'
+		Object.keys(callBack).map((key,index)=>{
+		let item = document.getElementById('Watch' + String(index))		
+		item.innerText = key
+	})	
+})
+}
+}
+//点击进入房间
+function WatchClickWithIndex(num){
+	switch (num) {
+		case 0:
+			watchStart(0)
+			break;
+		case 1:
+			watchStart(1)
+			break;
+		case 2:
+			watchStart(2)
+			break;
+		default:
+		break
+	  }
+}
+function watchStart(num){
+	webrtcPhone.startStream(parseInt(num))
+
+	showPageWithIndex(7)
+	ItemList.style.display = 'none'
+	StreamName.innerText = '房间:' + num
+}
+
+
 
 
 function LoginVideoRoom(){
 // webrtcPhone.initHtmlTag("remote-Roomstream-video", "remote-Roomstream-audio", "local-Roomstream-video")
-webrtcPhone.registVideoRoom('local-Roomstream-video')
+webrtcPhone.registVideoRoom('local-stream-video')
 }
 
 //Room本地音频开关
@@ -1959,12 +2246,12 @@ localVideo = !localVideo
 if(localVideo){
   localPublish.innerText = 'unpublisher'
   localRoomstreamvideo.style.display = 'none'
-  webrtcPhone.unpublishOwnFeed()
+//   webrtcPhone.unpublishOwnFeed()
 }else{
   localPublish.innerText = 'publisher'
   localRoomstreamvideo.style.display = 'block'
   localRoomstreamvideo.style.margin = '0 auto'
-  webrtcPhone.publishOwnFeed()
+//   webrtcPhone.publishOwnFeed()
 }
 }
 //记录是否接听过
@@ -2107,6 +2394,8 @@ var time;
 timeObj = document.getElementById("sid");
 VideoObject = document.getElementById("state");
 RoomTime = document.getElementById('Roomstate')
+Watchstate = document.getElementById('Watchstate')
+
   
 //时间处理
 num = 0;
@@ -2126,6 +2415,7 @@ if (hour==0) {
 timeObj.innerText = t;
 VideoObject.innerText = t
 RoomTime.innerText = t
+Watchstate.innerText = t
 }      //开始计时
 function StartTimes(){
 clearInterval(time);
@@ -2143,6 +2433,7 @@ t = "00:00";
 VideoObject.innerText = t
 timeObj.innerText = t;
 RoomTime.innerText = t
+Watchstate.innerText = t
 
 b = 0;
 }     
@@ -2199,10 +2490,9 @@ window.onmouseup = function() {
   dv.style.cursor = 'default';
 }   
 
-
 function dissKeyBoard(){
 let keyboard = document.getElementById("container")
 		keyboard.style.display = "none"	
-
+		ItemList.style.display = 'none'
 	
 }

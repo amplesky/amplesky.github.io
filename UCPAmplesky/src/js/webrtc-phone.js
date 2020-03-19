@@ -34,7 +34,7 @@ var webrtcPhone = (function () {
   var  callState //呼叫状态
   let callStatefuntionback; //呼叫状态的回调
   var callStateBack //呼叫状态回调函数
-  
+  let RoomisMutAudio //记录Room房间是否关闭扬声器
   // videoRoom变量
   var Roomjanus
   var videoRoomCall;
@@ -50,6 +50,15 @@ var webrtcPhone = (function () {
   var remoteNameList = {}
   var VideoRoomStream
   var RoomNumber
+
+  //Streaming 变量
+var Streaming;
+
+//shareScreen 
+let capture = null
+let role = null
+
+
 
     var getSupportedDevices = function (origCallback) {
     if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
@@ -311,11 +320,12 @@ var webrtcPhone = (function () {
 
 
   function initAndLogin(data,back,errorback,callStateMessage,backJsonMsg,jspMsg) {
-    if(data.GateWay.indexOf('.com') > 0 || window.location.protocol === 'https:'){
-      janusUrl = 'https://' + data.GateWay + '/janus';
-    }else{
-      janusUrl = 'http://' + data.GateWay + '/janus';
-    }
+    janusUrl = data.GateWay
+    // if(data.GateWay.indexOf('.com') > 0 || window.location.protocol === 'https:'){
+    //   janusUrl = 'https://' + data.GateWay + '/janus';
+    // }else{
+    //   janusUrl = 'http://' + data.GateWay + '/janus';
+    // }
     server = data.server;
     name = data.name;
     exten = data.exten;
@@ -497,7 +507,7 @@ var webrtcPhone = (function () {
         Janus.debug(JSON.stringify(stream));
         Janus.attachMediaStream($("#" + localStream).get(0), stream);
         /* IS VIDEO ENABLED ? */
-        var videoTracks = stream.getVideoTracks();
+        // var videoTracks = stream.getVideoTracks();
         /* */
       },
       onremotestream: function (stream) {
@@ -1172,6 +1182,7 @@ function AllOpen(){
         error: function(error) {
           Janus.error("  -- Error attaching plugin...", error);
           bootbox.alert("Error attaching plugin... " + error);
+          exitRoom()
         },
         consentDialog: function(on) {
           if(on) {
@@ -1188,7 +1199,9 @@ function AllOpen(){
               return false;
         },
         onmessage: function(msg, jsep) {
-          
+          console.log('==============')
+          console.log(jsep)
+
           Janus.debug(" ::: Got a message (publisher) :::");
           Janus.debug(msg);
           var event = msg["videoroom"];
@@ -1197,7 +1210,9 @@ function AllOpen(){
               
               myid = msg["id"];
               mypvtid = msg["private_id"];
-              publishOwnFeed(true);
+              
+              capture = "desktop";
+              shareScreen();
               if (msg["publishers"] != undefined && msg["publishers"] !== null) {
                   var list = msg["publishers"];
                   for(var f in list){
@@ -1227,7 +1242,8 @@ function AllOpen(){
                 if(remoteList.hasOwnProperty(leaveNum)){
                   Object.keys(remoteList).map((key,index)=>{
                       if(key === leaveNum){
-                        var remoteDiv  = document.getElementById("remoteDiv" + index.toString())     
+                        var remoteDiv  = document.getElementById("remoteDiv" + index.toString())  
+                        
                         remoteDiv.style.display = 'none'
                       }
                   })
@@ -1235,6 +1251,11 @@ function AllOpen(){
                   delete remoteList[leaveNum];
                   delete RoomhandleRemote[leaveNum]
                   delete remoteNameList[leaveNum]
+                  if(Object.keys(remoteList).length <= 3){
+                    remoteView.style.width = "640px"
+                  }else{
+                    remoteView.style.width = "940px"
+                  }
                 }
                 var remoteFeed = null;
                 for(var i=1; i<6; i++) {
@@ -1254,16 +1275,19 @@ function AllOpen(){
                 if(remoteList.hasOwnProperty(roomUnpublished)){
                   Object.keys(remoteList).map((key,index)=>{
                     if(key == roomUnpublished){
-                      var remoteDiv  = document.getElementById("remoteDiv" + index.toString())     
+                      var remoteDiv  = document.getElementById("remoteDiv" + index.toString())   
                         remoteDiv.style.display = 'none'
-                      
                     }
-        
                 })
-        
                   delete remoteList[roomUnpublished];
                   delete RoomhandleRemote[roomUnpublished]
                   delete remoteNameList[roomUnpublished]
+                  let remoteView = document.getElementById("remoteVideoDiv")
+                  if(Object.keys(remoteList).length <= 3){
+                    remoteView.style.width = "640px"
+                  }else{
+                    remoteView.style.width = "940px"
+                  }
                 }
                 if(unpublished === 'ok') {
                   // That's us
@@ -1283,16 +1307,17 @@ function AllOpen(){
                 }
         
               }else if(msg["error"] !== undefined && msg["error"] !== null) {
-        
-        
+
               }
             }
         
             }
           if(jsep !== undefined && jsep !== null) {
+            console.log('***************')
             videoRoomCall.handleRemoteJsep({jsep: jsep});
             var audio = msg["audio_codec"];
             var video = msg["video_codec"];
+            console.log('***************')
         
           }
         },
@@ -1308,7 +1333,7 @@ function AllOpen(){
           
         },
         onremotestream: function(stream) {
-        
+        console.log('===**************===')
         },
         oncleanup: function() {
           Janus.log(" ::: Got a cleanup notification: we are unpublished now :::"); 
@@ -1343,7 +1368,7 @@ function AllOpen(){
   }
 
   $(document).on('RoomMutAudio', function (ev,code) {
-
+    RoomisMutAudio = code
     if(code == 0){
       Object.keys(remoteList).map((key,index)=>{
         var videoObjc = document.getElementById("remote-Roomstream-video" + index.toString())  
@@ -1389,14 +1414,18 @@ divClick.ondblclick = function(e){
 
   //创建房间
   function creatRoom(roomID){
-    var CreatRoom = {"request" : "create","publishers": 9,"room" : roomID,"is_private":false,"permanent":true};
+    var CreatRoom = {"request" : "create","publishers": 9,"room" : roomID,"is_private":false,"permanent":true,"bitrate": 1024000,
+    "opus_fec": true,
+};
     videoRoomCall.send({"message": CreatRoom})
   }
 
   //加入房间
   function joinRoom(room,userName){
     RoomNumber = room
-    var register = { "request": "join", "room": room, "ptype": "publisher", "display": userName };
+    var register = { "request": "join", "room": room, "ptype": "publisher", "display": userName,"bitrate": 1024000,
+    "opus_fec": true,
+};
 		myusername = userName;
 		videoRoomCall.send({"message": register});
   }
@@ -1418,19 +1447,26 @@ divClick.ondblclick = function(e){
   }
   let videoMuted = false
   function exitRoom() {
+    if(videoRoomCall){
+    videoRoomCall.hangup()
+    }
+    if(Object.keys(remoteList).length > 0){
+      videoRoomCall.ChangeLocalStream(false)
     Object.keys(remoteList).map((key,index)=>{
       var videoObjc = document.getElementById("remote-Roomstream-video" + index.toString()) 
       var remoteDiv  = document.getElementById("remoteDiv" + index.toString()) 
       videoObjc.style.display = "none"
       remoteDiv.style.display = 'none'
     })
+    
     divClick.style.display = "none"
     remoteList = {}
     RoomhandleRemote = {}
     remoteNameList = {}
     muteVideo = false
-    videoRoomCall.hangup()
-    Roomjanus.destroy();
+    
+    Roomjanus.destroy();  
+  }
   }
   function publish(){
     var objc = {"request":"unpublish"}
@@ -1455,6 +1491,7 @@ divClick.ondblclick = function(e){
 				if (useAudio) {
 					 publishOwnFeed(false);
 				} else {
+
 				}
 			}
     })
@@ -1482,7 +1519,7 @@ divClick.ondblclick = function(e){
 
   function unpublishOwnFeed(){
     var unpublish = { "request": "unpublish" };
-	  videoRoomCall.send({"message": unpublish});
+	  // videoRoomCall.send({"message": unpublish});
   }
 
   function newRemoteFeed(id, display, audio, video){
@@ -1493,7 +1530,7 @@ divClick.ondblclick = function(e){
           success:function(pluginHandle) {
             remoteFeed = pluginHandle;
             remoteFeed.simulcastStarted = false;
-            var subscribe = { "request": "join", "room": RoomNumber, "ptype": "subscriber", "feed": id, "private_id": mypvtid };
+            var subscribe = { "request": "join", "room": RoomNumber, "ptype": "listener", "feed": id};
             remoteFeed.videoCodec = video;
 				    remoteFeed.send({"message": subscribe});
           },
@@ -1555,7 +1592,11 @@ divClick.ondblclick = function(e){
           onremotestream: function(stream) {
             if (display == myusername){
               return;
-            }     
+            }  
+            if(remoteList.hasOwnProperty(id)){
+              
+              
+            }
             remoteList[id] = stream;
             RoomhandleRemote[id] = remoteFeed
             remoteNameList[id] = display
@@ -1572,8 +1613,6 @@ divClick.ondblclick = function(e){
                   return;
                 }
                 let noteSteam = remoteList[key]
-                var audioTracks = noteSteam.getAudioTracks();
-                var videoTracks = noteSteam.getVideoTracks();
                 var videoObjc = document.getElementById("remote-Roomstream-video" + index.toString())
                 var remoteObjct = document.getElementById("RemoteName" + index.toString())
                 var remoteDiv  = document.getElementById("remoteDiv" + index.toString()) 
@@ -1583,6 +1622,7 @@ divClick.ondblclick = function(e){
                 remoteDiv.style.display = 'block'
                 videoObjc.muted = false
                 Janus.attachMediaStream($("#" + 'remote-Roomstream-video' + index.toString()).get(0), noteSteam);
+                $(document).trigger('RoomMutAudio',RoomisMutAudio);
               })
             }
           },
@@ -1593,9 +1633,45 @@ divClick.ondblclick = function(e){
         });  
   }
 
-
-
   
+
+  $(document).on('RoomVideomuted', function (ev) {
+    if(Object.keys(remoteList).length > 0){
+      Object.keys(remoteList).map((key,index)=>{
+        var videoObjc = document.getElementById("remote-Roomstream-video" + index.toString()) 
+        var remoteDiv  = document.getElementById("remoteDiv" + index.toString()) 
+        videoObjc.style.display = "none"
+        remoteDiv.style.display = 'none'
+      });
+    }
+
+    if(Object.keys(remoteList).length !== 0){
+      let remoteView = document.getElementById("remoteVideoDiv")
+      if(Object.keys(remoteList).length <= 3){
+        remoteView.style.width = "640px"
+      }else{
+        remoteView.style.width = "940px"
+      }
+      Object.keys(remoteList).map((key,index)=>{
+        if(index > 7){
+          return;
+        }
+        let noteSteam = remoteList[key]
+        var audioTracks = noteSteam.getAudioTracks();
+        var videoTracks = noteSteam.getVideoTracks();
+        var videoObjc = document.getElementById("remote-Roomstream-video" + index.toString())
+        var remoteObjct = document.getElementById("RemoteName" + index.toString())
+        var remoteDiv  = document.getElementById("remoteDiv" + index.toString()) 
+        var RemoteName = remoteNameList[key]
+        remoteObjct.innerText = RemoteName
+        videoObjc.style.display = "block"
+        remoteDiv.style.display = 'block'
+        videoObjc.muted = false
+        Janus.attachMediaStream($("#" + 'remote-Roomstream-video' + index.toString()).get(0), noteSteam);
+      })
+    }
+
+  })
 
   //Room声音的开关
   function mut() {  
@@ -1607,7 +1683,7 @@ divClick.ondblclick = function(e){
     }
   }
 
-  
+  //关闭房间的视频
   function RoommutVideo() {  
     videoMuted = !videoMuted
     if(videoMuted){
@@ -1616,6 +1692,212 @@ divClick.ondblclick = function(e){
       videoRoomCall.unmuteVideo();
     }
   }
+
+
+  //观看直播
+  function watchLive(callbackdata){
+    if(!Streaming){
+      janus.attach({
+          plugin: "janus.plugin.streaming",
+          opaqueId: opaqueId,
+          success:function(pluginHandle){
+            Streaming = pluginHandle
+            updateStreamsList(function callback(data){
+              callbackdata(data)
+            })
+          },
+          error: function(error) {
+            Janus.error("  -- Error attaching plugin... ", error);
+            bootbox.alert("Error attaching plugin... " + error);
+            Streaming = null
+          },
+          onmessage:function(msg,jsep){
+            console.log('====watch===')
+            console.log(msg)
+            console.log('====watch===')
+            var result = msg["result"]; 
+            if(result !== null && result !== undefined) { 
+              if(result["status"] !== undefined && result["status"] !== null) {
+                var status = result["status"];
+                if(status === 'starting'){
+                  $(document).trigger('starting');
+                }else if(status === 'started'){
+                  $(document).trigger('started');
+                }else if(status === 'stopped'){
+                  $(document).trigger('stopped');
+                  stopStream();
+                }
+              } else if(msg["streaming"] === "event") {
+                  var substream = result["substream"];
+                  var temporal = result["temporal"];
+                  if((substream !== null && substream !== undefined) || (temporal !== null && temporal !== undefined)) {
+
+                  }
+
+                    var spatial = result["spatial_layer"];
+                    temporal = result["temporal_layer"];
+                    
+              }
+
+            }else if(msg["error"] !== undefined && msg["error"] !== null) {
+              $(document).trigger('watcherror',[msg["error"]]);
+                stopStream();
+                return;
+            }
+            if(jsep !== undefined && jsep !== null) {
+              Streaming.createAnswer({
+                jsep: jsep,
+                media: { audioSend: false, videoSend: false },
+                success: function(jsep) {
+                  var body = { "request": "start" };
+                  Streaming.send({"message": body, "jsep": jsep});
+
+                },error: function(error) {
+                  Janus.error("WebRTC error:", error);
+                  bootbox.alert("WebRTC error... " + JSON.stringify(error));
+                }
+              })
+            }
+          },
+          onremotestream: function(stream) {
+            var addButtons = false;
+            var videoTracks = stream.getVideoTracks();
+            Janus.attachMediaStream($('#watchRemoteVideo').get(0), stream);
+            
+          },oncleanup: function() {
+            // Streaming = null
+          },
+      })
+    }else{
+      updateStreamsList(function callback(data){
+        callbackdata(data)
+      })
+    }
+  }
+
+  //获取直播列表
+  function updateStreamsList(callBack){
+    var body = { "request": "list" };
+    Streaming.send({"message": body, success: function(result) {
+      if(result === null || result === undefined) {
+        bootbox.alert("Got no response to our query for available streams");
+        return;
+      }
+      if(result["list"] !== undefined && result["list"] !== null) {
+        var list = result["list"];
+        Janus.log("Got a list of available streams");
+        Janus.debug(list);
+        callBack(list)
+      }
+    }
+  })
+}
+
+//开始观看直播
+function startStream(ID){
+  if(Streaming){
+    var body = { "request": "watch",
+    "offer_audio":true,
+    "offer_video":true,
+    "pin":"1234",
+    id: parseInt(ID) 
+  
+  };
+    Streaming.send({"message": body});
+  }else{
+    watchLive(function callback(back){
+      var body = { "request": "watch", id: parseInt(ID) };
+      Streaming.send({"message": body});
+    })
+  } 
+}
+//结束观看退出房间
+function stopStream(){
+  var body = { "request": "stop" };
+	Streaming.send({"message": body});
+	Streaming.hangup();
+}
+
+
+// 屏幕共享
+function preShareScreen(ScreenShare,isVideoCall){
+  if(!Janus.isExtensionEnabled()) {
+    alert("You're using Chrome but don't have the screensharing extension installed: click <b><a href='https://chrome.google.com/webstore/detail/janus-webrtc-screensharin/hapfgfdkleiggjjpfpenajgdnfckjpaj' target='_blank'>here</a></b> to do so", function() {
+			window.location.reload();
+		});
+		return; 
+  }
+
+  if(!isVideoCall){
+    if(ScreenShare){
+      videoRoomCall.ChangeLocalStream(false)
+      capture = "screen";
+    shareScreen(false);
+    }else{
+      videoRoomCall.ChangeLocalStream(true)
+      capture = "desktop";
+      shareScreen(false);
+    }
+  }else{
+    if(ScreenShare){
+      VideoCall.ChangeLocalStream(false)
+      capture = "screen";
+    shareScreen(true);
+    }else{
+      VideoCall.ChangeLocalStream(true)
+      capture = "desktop";
+      shareScreen(true);
+    }
+  }
+ 
+  
+}
+
+function shareScreen(isVideoCall){
+  if(isVideoCall){
+    VideoCall.muteVideo()
+    VideoCall.createOffer(
+      {
+        media: { video: capture, audioSend: true, videoRecv: false},	// Screen sharing Publishers are sendonly
+        success: function(jsep) {
+          Janus.debug("Got publisher SDP!");
+          Janus.debug(jsep);
+          var publish = { "request": "configure", "audio": true, "video": true };
+          VideoCall.send({"message": publish, "jsep": jsep});
+        },
+        error: function(error) {
+          // Janus.error("WebRTC error:", error);
+          // bootbox.alert("WebRTC error... " + JSON.stringify(error));
+        }
+      });
+  }else{
+    videoRoomCall.createOffer(
+      {
+        media: { video: capture, audioSend: true, videoRecv: false},	// Screen sharing Publishers are sendonly
+        success: function(jsep) {
+          Janus.debug("Got publisher SDP!");
+          Janus.debug(jsep);
+          var publish = { "request": "configure", "audio": true, "video": true };
+          videoRoomCall.send({"message": publish, "jsep": jsep});
+        },
+        error: function(error) {
+          // Janus.error("WebRTC error:", error);
+          // bootbox.alert("WebRTC error... " + JSON.stringify(error));
+        }
+      });
+  }
+  
+}
+
+
+
+
+
+
+
+
+
+
 
   function initHtmlTag(remote_video, remote_audio, local_video) {
     localStream = local_video;
@@ -1676,6 +1958,12 @@ divClick.ondblclick = function(e){
     RoommutVideo:RoommutVideo,
     ClickVideoDisplay:ClickVideoDisplay,
     refreshLogOut:refreshLogOut,
+    watchLive:watchLive,
+    startStream:startStream,
+    stopStream:stopStream,
+    updateStreamsList:updateStreamsList,
+    preShareScreen:preShareScreen
+
     // getWebRTCCallInfo:getWebRTCCallInfo,
   };
 

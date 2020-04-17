@@ -33,7 +33,7 @@
 			<key>metadata</key>
 			<dict>
 				<key>bundle-identifier</key>
-				<string>com.amplesky.client.cd</string>
+				<string>com.amplesky.client.claireye</string>
 				<key>bundle-version</key>
 				<string>1.0.12</string>
 				<key>kind</key>

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>指挥调度客户端下载</title>
+    <title>ClairEye下载</title>
 </head>
 <style type="text/css">
     .box-wrap{
@@ -20,6 +20,7 @@
     .Title{
         margin-top: 10px;
         color: white;
+        font-size: 20px;
         /* display:flex; */
     }
     .btn{
@@ -64,10 +65,10 @@
 <body class="body-background">
     <div class="box-wrap">
             <img class="Logo" src="./icon/Appicon.png"/>
-            <div class="Title">指挥调度客户端</div>
+            <div class="Title">ClairEye</div>
         <div style="margin-top: 25px;">
             <div style="display: inline-block;">
-                <div class="version">版本:(v1.0.14)</div> 
+                <div class="version">版本:(v1.0.15)</div> 
                 <button class="btn"onclick="Downloadios()">
                     <img src="./icon/Apple.png" class="Image"/>
                     <div class="Text">iOS端下载</div>
@@ -90,7 +91,7 @@
 
      function Downloadios(){
         // if(isIos()){
-            window.location.href='itms-services:///?action=download-manifest&url=https://amplesky.github.io/appinfo.plist'
+            window.location.href='itms-services:///?action=download-manifest&url=https://amplesky.gitee.io/page/clair.plist'
         // }else{
         //     alert("Android设备,请下载Android安装包")
         // }
@@ -108,19 +109,23 @@
     function isIos() {
         isIos
 } 
+// https://amplesky.gitee.io/page/version.json
 
-    // var ajax = new XMLHttpRequest()
-    // ajax.open('get','https://amplesky.github.io/version.json')
-    // ajax.send()
-    // ajax.onreadystatechange = function(){
-    //     console.log(ajax.responseText);
-    //     // 转化为 js对象
-    //             var jsObj = JSON.parse(ajax.responseText);
-    
-    // }
-
-
-
+// var xmlhttp;
+// if (window.XMLHttpRequest)
+//   {// code for IE7+, Firefox, Chrome, Opera, Safari
+//   xmlhttp=new XMLHttpRequest();
+//   }
+// else
+//   {// code for IE6, IE5
+//   xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+//   }
+// xmlhttp.onreadystatechange=function()
+//   {
+//     console.log(xmlhttp.responseText)
+//   }
+// xmlhttp.open("GET","https://amplesky.gitee.io/page/version.xml",true);
+// xmlhttp.send();
     </script>
 
 
